@@ -40,7 +40,7 @@ QString humanReadableFileSize(const qint64 size)
 	return QString().setNum(s, 'f', 2) + " " + unit;
 }
 
-int InputFileItem::requiredInfoPieces = 6;
+int InputFileItem::requiredInfoPieces = 7;
 
 InputFileItem::InputFileItem(const QString path)
 {
@@ -146,7 +146,7 @@ int InputFilesModel::columnCount(const QModelIndex &parent) const
 	if (parent.isValid())
 		return 0;
 
-	return 6;
+	return InputFileItem::requiredInfoPieces;
 }
 
 QVariant InputFilesModel::data(const QModelIndex &index, int role) const

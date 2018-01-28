@@ -17,6 +17,8 @@ class InputFileItem
 	friend class QVector<InputFileItem>;
 
 	public:
+		static int requiredInfoPieces;
+
 		InputFileItem(const QString path);
 		QString getPath() const { return path; }
 		QString getFileName() const;
@@ -46,7 +48,6 @@ class InputFileItem
 		InputFileItemStatus status;
 		QString error;
 		int currentInfoPieces;
-		static int requiredInfoPieces;
 
 		InputFileItem() { ; }
 };
