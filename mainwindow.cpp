@@ -12,21 +12,20 @@
 MainWindow::MainWindow(QWidget *parent): QMainWindow(parent), ui(new Ui::MainWindow)
 {
 	ui->setupUi(this);
-	ui->statusBar->showMessage("0 videos to check");
 
 	inputFilesModel = new InputFilesModel(ui->inputFilesTableView);
 	timeToDie = false;
 	prefs = NULL;
 
 	ui->inputFilesTableView->setModel(inputFilesModel);
+	ui->statusBar->showMessage(QString("%1 videos").arg(inputFilesModel->rowCount()));
 
 	connect(ui->inputFilesTableView->selectionModel(),
 			&QItemSelectionModel::selectionChanged,	this,
 			&MainWindow::inputVideoSelectionChanged);
 
-	connect(this, &MainWindow::inputFilesAdded, [=]() {
-		ui->clearPushButton->setEnabled(inputFilesModel->rowCount() > 0);
-	});
+	connect(this, &MainWindow::inputFilesListChanged, this,
+			&MainWindow::updateInputFileCounter);
 }
 
 MainWindow::~MainWindow()
@@ -64,9 +63,9 @@ void MainWindow::addVideoFiles()
 				return;
 
 			inputFilesModel->add(path);
-		}
 
-		emit inputFilesAdded();
+			emit inputFilesListChanged();
+		}
 	});
 }
 
@@ -86,10 +85,10 @@ void MainWindow::addVideoDir()
 
 				if (info.isFile()) {
 					inputFilesModel->add(info.filePath());
+
+					emit inputFilesListChanged();
 				}
 			}
-
-			emit inputFilesAdded();
 		});
 	}
 }
@@ -99,18 +98,19 @@ void MainWindow::removeVideoFiles()
 	QItemSelectionModel *selection = ui->inputFilesTableView->selectionModel();
 
 	if (selection->hasSelection()) {
-		foreach (QModelIndex index, selection->selectedRows())
+		foreach (QModelIndex index, selection->selectedRows()) {
 			inputFilesModel->remove(index);
-	}
 
-	ui->clearPushButton->setEnabled(inputFilesModel->rowCount() > 0);
+			emit inputFilesListChanged();
+		}
+	}
 }
 
 void MainWindow::clearVideoFiles()
 {
 	inputFilesModel->clear();
 
-	ui->clearPushButton->setEnabled(false);
+	emit inputFilesListChanged();
 }
 
 void MainWindow::showPreferences()
@@ -127,6 +127,11 @@ void MainWindow::showPreferences()
 void MainWindow::applyPreferences()
 {
 
+}
+
+void MainWindow::updateInputFileCounter() {
+	ui->clearPushButton->setEnabled(inputFilesModel->rowCount() > 0);
+	ui->statusBar->showMessage(QString("%1 videos").arg(inputFilesModel->rowCount()));
 }
 
 void MainWindow::checkSimilarity()

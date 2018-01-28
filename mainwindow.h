@@ -29,7 +29,7 @@ class MainWindow: public QMainWindow
 		bool timeToDie;
 
 	signals:
-		void inputFilesAdded();
+		void inputFilesListChanged();
 
 	public slots:
 		void inputVideoSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
@@ -39,6 +39,7 @@ class MainWindow: public QMainWindow
 		void clearVideoFiles();
 		void showPreferences();
 		void checkSimilarity();
+		void updateInputFileCounter();
 
 	private slots:
 		void applyPreferences();
