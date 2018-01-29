@@ -58,7 +58,7 @@ int InputFileItem::getVideoInfo()
 	this->size = QFileInfo(path).size();
 	int ret = 0;
 
-	MediaUtility media = MediaUtility(path.toStdString().c_str());
+	MediaUtility media = MediaUtility(qPrintable(path));
 
 	if ((ret = media.open()) == 0) {
 		switch (media.getMediaType()) {

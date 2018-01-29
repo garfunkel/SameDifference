@@ -27,8 +27,6 @@ MainWindow::MainWindow(QWidget *parent): QMainWindow(parent), ui(new Ui::MainWin
 
 	ui->statusBar->showMessage(QString("%1 files").arg(inputFilesModel.rowCount()));
 
-	toggleShowHiddenFiles(ui->showHiddenCheckBox->isChecked());
-
 	connect(ui->inputFilesTableView->selectionModel(),
 			&QItemSelectionModel::selectionChanged,	this,
 			&MainWindow::inputFileSelectionChanged);
@@ -37,6 +35,9 @@ MainWindow::MainWindow(QWidget *parent): QMainWindow(parent), ui(new Ui::MainWin
 			&MainWindow::updateInputFileCounter);
 
 	connect(prefs, &Preferences::accepted, this, &MainWindow::applyPreferences);
+
+	// Configure app with our preferences.
+	applyPreferences();
 }
 
 MainWindow::~MainWindow()
@@ -63,7 +64,7 @@ void MainWindow::inputFileSelectionChanged(const QItemSelection &selected, const
 
 void MainWindow::addFiles()
 {
-	QStringList paths = QFileDialog::getOpenFileNames(this, tr("Select files"), QDir::homePath());
+	QStringList paths = QFileDialog::getOpenFileNames(this, tr(qPrintable(addFilesDialogTitle)), QDir::homePath());
 
 	QtConcurrent::run([=]() {
 		foreach (QString path, paths) {
@@ -128,6 +129,32 @@ void MainWindow::showPreferences()
 
 void MainWindow::applyPreferences()
 {
+	switch (prefs->getCheckFiles()) {
+		case VideosAndImages:
+			ui->addFilesPushButton->setText("Add Videos && Images");
+			addFilesDialogTitle = "Select Videos & Images";
+
+			break;
+
+		case Videos:
+			ui->addFilesPushButton->setText("Add Videos");
+			addFilesDialogTitle = "Select Videos";
+
+			break;
+
+		case Images:
+			ui->addFilesPushButton->setText("Add Images");
+			addFilesDialogTitle = "Select Images";
+
+			break;
+
+		case All:
+			ui->addFilesPushButton->setText("Add Files");
+			addFilesDialogTitle = "Select Files";
+
+			break;
+	}
+
 	toggleShowHiddenFiles(ui->showHiddenCheckBox->isChecked());
 }
 

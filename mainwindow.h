@@ -27,8 +27,8 @@ class MainWindow: public QMainWindow
 		Preferences *prefs;
 		InputFilesModel inputFilesModel;
 		SortFilterProxyModel sortProxyModel;
-
 		bool timeToDie;
+		QString addFilesDialogTitle;
 
 	signals:
 		void inputFilesListChanged();
