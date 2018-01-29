@@ -54,8 +54,7 @@ void MainWindow::inputVideoSelectionChanged(const QItemSelection &selected, cons
 
 void MainWindow::addVideoFiles()
 {
-	QString selectedFilter = tr("Video files (*.mkv *.mp4 *.avi *.ogv *.mpg *.mpeg *.3gp)");
-	QStringList paths = QFileDialog::getOpenFileNames(this, tr("Select video files"), QDir::homePath(), tr("All files (*);;") + selectedFilter, &selectedFilter);
+	QStringList paths = QFileDialog::getOpenFileNames(this, tr("Select video files"), QDir::homePath());
 
 	QtConcurrent::run([=]() {
 		foreach (QString path, paths) {

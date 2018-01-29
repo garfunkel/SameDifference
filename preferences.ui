@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>398</width>
-    <height>223</height>
+    <height>220</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -39,7 +39,7 @@
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="8" column="1">
-    <widget class="QComboBox" name="comboBox">
+    <widget class="QComboBox" name="checkFilesComboBox">
      <item>
       <property name="text">
        <string>Images &amp; Videos</string>
@@ -68,7 +68,7 @@
       <enum>Qt::Horizontal</enum>
      </property>
      <property name="standardButtons">
-      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok|QDialogButtonBox::RestoreDefaults</set>
      </property>
     </widget>
    </item>
@@ -85,6 +85,26 @@
      </property>
     </widget>
    </item>
+   <item row="5" column="0" colspan="2">
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="7" column="0" colspan="2">
+    <widget class="Line" name="line">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
    <item row="8" column="0">
     <widget class="QLabel" name="label_4">
      <property name="text">
@@ -93,7 +113,7 @@
     </widget>
    </item>
    <item row="4" column="0" colspan="2">
-    <widget class="QLabel" name="label_2">
+    <widget class="QLabel" name="similarityThresholdLabel">
      <property name="text">
       <string>50 - Fairly similar</string>
      </property>
@@ -116,7 +136,7 @@
     </widget>
    </item>
    <item row="3" column="0" colspan="2">
-    <widget class="QSlider" name="horizontalSlider">
+    <widget class="QSlider" name="similarityThresholdHorizontalSlider">
      <property name="minimum">
       <number>1</number>
      </property>
@@ -144,26 +164,6 @@
      </property>
     </widget>
    </item>
-   <item row="5" column="0" colspan="2">
-    <spacer name="verticalSpacer">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
-       <height>40</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
-   <item row="7" column="0" colspan="2">
-    <widget class="Line" name="line">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-   </item>
   </layout>
  </widget>
  <resources/>
@@ -175,12 +175,12 @@
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>248</x>
-     <y>254</y>
+     <x>227</x>
+     <y>183</y>
     </hint>
     <hint type="destinationlabel">
      <x>157</x>
-     <y>274</y>
+     <y>219</y>
     </hint>
    </hints>
   </connection>
@@ -191,14 +191,67 @@
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>316</x>
-     <y>260</y>
+     <x>295</x>
+     <y>183</y>
     </hint>
     <hint type="destinationlabel">
      <x>286</x>
-     <y>274</y>
+     <y>219</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>similarityThresholdHorizontalSlider</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>Preferences</receiver>
+   <slot>updateSimilarityThresholdLabel(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>255</x>
+     <y>58</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>397</x>
+     <y>84</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>Preferences</sender>
+   <signal>accepted()</signal>
+   <receiver>Preferences</receiver>
+   <slot>applySettings()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>397</x>
+     <y>49</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>398</x>
+     <y>122</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>Preferences</sender>
+   <signal>rejected()</signal>
+   <receiver>Preferences</receiver>
+   <slot>cancelSettings()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>396</x>
+     <y>29</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>398</x>
+     <y>44</y>
     </hint>
    </hints>
   </connection>
  </connections>
+ <slots>
+  <slot>updateSimilarityThresholdLabel(int)</slot>
+  <slot>applySettings()</slot>
+  <slot>cancelSettings()</slot>
+ </slots>
 </ui>

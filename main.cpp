@@ -11,6 +11,10 @@ int main(int argc, char *argv[])
 	av_register_all();
 	av_log_set_level(AV_LOG_QUIET);
 
+	QCoreApplication::setOrganizationName("Simon Allen");
+	QCoreApplication::setOrganizationDomain("simonallen.org");
+	QCoreApplication::setApplicationName("SameDifference");
+
 	qRegisterMetaType<QVector<int> >("QVector<int>");
 
 	QApplication a(argc, argv);
