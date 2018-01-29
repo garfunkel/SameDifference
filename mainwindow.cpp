@@ -25,13 +25,13 @@ MainWindow::MainWindow(QWidget *parent): QMainWindow(parent), ui(new Ui::MainWin
 	ui->inputFilesTableView->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
 	ui->inputFilesTableView->horizontalHeader()->setSortIndicator(0, Qt::AscendingOrder);
 
-	ui->statusBar->showMessage(QString("%1 videos").arg(inputFilesModel.rowCount()));
+	ui->statusBar->showMessage(QString("%1 files").arg(inputFilesModel.rowCount()));
 
 	toggleShowHiddenFiles(ui->showHiddenCheckBox->isChecked());
 
 	connect(ui->inputFilesTableView->selectionModel(),
 			&QItemSelectionModel::selectionChanged,	this,
-			&MainWindow::inputVideoSelectionChanged);
+			&MainWindow::inputFileSelectionChanged);
 
 	connect(this, &MainWindow::inputFilesListChanged, this,
 			&MainWindow::updateInputFileCounter);
@@ -54,20 +54,16 @@ void MainWindow::closeEvent(QCloseEvent *event) {
 	QThreadPool::globalInstance()->waitForDone();
 }
 
-bool MainWindow::checkFileExistence(const QString path) const {
-	return QFileInfo(path).exists();
-}
-
-void MainWindow::inputVideoSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected)
+void MainWindow::inputFileSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected)
 {
 	Q_UNUSED(deselected)
 
-	ui->removePushButton->setEnabled(!selected.isEmpty());
+	ui->removeFilesPushButton->setEnabled(!selected.isEmpty());
 }
 
-void MainWindow::addVideoFiles()
+void MainWindow::addFiles()
 {
-	QStringList paths = QFileDialog::getOpenFileNames(this, tr("Select video files"), QDir::homePath());
+	QStringList paths = QFileDialog::getOpenFileNames(this, tr("Select files"), QDir::homePath());
 
 	QtConcurrent::run([=]() {
 		foreach (QString path, paths) {
@@ -81,7 +77,7 @@ void MainWindow::addVideoFiles()
 	});
 }
 
-void MainWindow::addVideoDir()
+void MainWindow::addDir()
 {
 	QString dirPath = QFileDialog::getExistingDirectory(this, tr("Select folder"), QDir::homePath());
 
@@ -105,7 +101,7 @@ void MainWindow::addVideoDir()
 	}
 }
 
-void MainWindow::removeVideoFiles()
+void MainWindow::removeFiles()
 {
 	QItemSelectionModel *selection = ui->inputFilesTableView->selectionModel();
 
@@ -118,7 +114,7 @@ void MainWindow::removeVideoFiles()
 	}
 }
 
-void MainWindow::clearVideoFiles()
+void MainWindow::clearFiles()
 {
 	inputFilesModel.clear();
 
@@ -137,8 +133,8 @@ void MainWindow::applyPreferences()
 
 void MainWindow::updateInputFileCounter()
 {
-	ui->clearPushButton->setEnabled(inputFilesModel.rowCount() > 0);
-	ui->statusBar->showMessage(QString("%1 videos").arg(inputFilesModel.rowCount()));
+	ui->clearFilesPushButton->setEnabled(inputFilesModel.rowCount() > 0);
+	ui->statusBar->showMessage(QString("%1 files").arg(inputFilesModel.rowCount()));
 }
 
 void MainWindow::toggleShowHiddenFiles(const bool show)

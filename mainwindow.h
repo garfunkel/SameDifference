@@ -21,7 +21,6 @@ class MainWindow: public QMainWindow
 		explicit MainWindow(QWidget *parent = 0);
 		~MainWindow();
 		void closeEvent(QCloseEvent *event) override;
-		bool checkFileExistence(const QString path) const;
 
 	private:
 		Ui::MainWindow *ui;
@@ -35,11 +34,11 @@ class MainWindow: public QMainWindow
 		void inputFilesListChanged();
 
 	public slots:
-		void inputVideoSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
-		void addVideoFiles();
-		void addVideoDir();
-		void removeVideoFiles();
-		void clearVideoFiles();
+		void inputFileSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
+		void addFiles();
+		void addDir();
+		void removeFiles();
+		void clearFiles();
 		void showPreferences();
 		void checkSimilarity();
 		void updateInputFileCounter();

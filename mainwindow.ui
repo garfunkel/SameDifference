@@ -29,7 +29,7 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item>
-         <widget class="QPushButton" name="addPushButton">
+         <widget class="QPushButton" name="addFilesPushButton">
           <property name="text">
            <string>Add File</string>
           </property>
@@ -39,7 +39,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="addDirsPushButton">
+         <widget class="QPushButton" name="addDirPushButton">
           <property name="text">
            <string>Add Folder</string>
           </property>
@@ -49,12 +49,12 @@
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="removePushButton">
+         <widget class="QPushButton" name="removeFilesPushButton">
           <property name="enabled">
            <bool>false</bool>
           </property>
           <property name="text">
-           <string>Remove Videos</string>
+           <string>Remove Files</string>
           </property>
           <property name="icon">
            <iconset theme="list-remove"/>
@@ -133,7 +133,7 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_3">
         <item>
-         <widget class="QPushButton" name="clearPushButton">
+         <widget class="QPushButton" name="clearFilesPushButton">
           <property name="enabled">
            <bool>false</bool>
           </property>
@@ -156,7 +156,7 @@
          </spacer>
         </item>
         <item>
-         <widget class="QPushButton" name="pushButton_2">
+         <widget class="QPushButton" name="checkSimilarityPushButton">
           <property name="text">
            <string>Check Similarity</string>
           </property>
@@ -184,10 +184,10 @@
  <resources/>
  <connections>
   <connection>
-   <sender>addPushButton</sender>
+   <sender>addFilesPushButton</sender>
    <signal>clicked()</signal>
    <receiver>MainWindow</receiver>
-   <slot>addVideoFiles()</slot>
+   <slot>addFiles()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>63</x>
@@ -200,10 +200,10 @@
    </hints>
   </connection>
   <connection>
-   <sender>removePushButton</sender>
+   <sender>removeFilesPushButton</sender>
    <signal>clicked()</signal>
    <receiver>MainWindow</receiver>
-   <slot>removeVideoFiles()</slot>
+   <slot>removeFiles()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>318</x>
@@ -216,10 +216,10 @@
    </hints>
   </connection>
   <connection>
-   <sender>clearPushButton</sender>
+   <sender>clearFilesPushButton</sender>
    <signal>clicked()</signal>
    <receiver>MainWindow</receiver>
-   <slot>clearVideoFiles()</slot>
+   <slot>clearFiles()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>65</x>
@@ -232,10 +232,10 @@
    </hints>
   </connection>
   <connection>
-   <sender>addDirsPushButton</sender>
+   <sender>addDirPushButton</sender>
    <signal>clicked()</signal>
    <receiver>MainWindow</receiver>
-   <slot>addVideoDir()</slot>
+   <slot>addDir()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>216</x>
@@ -264,7 +264,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>pushButton_2</sender>
+   <sender>checkSimilarityPushButton</sender>
    <signal>clicked()</signal>
    <receiver>MainWindow</receiver>
    <slot>checkSimilarity()</slot>
@@ -297,11 +297,10 @@
   </connection>
  </connections>
  <slots>
-  <slot>removeVideoFiles()</slot>
-  <slot>addVideoFiles()</slot>
-  <slot>manualVideoPathChanged(QString)</slot>
-  <slot>clearVideoFiles()</slot>
-  <slot>addVideoDir()</slot>
+  <slot>removeFiles()</slot>
+  <slot>addFiles()</slot>
+  <slot>clearFiles()</slot>
+  <slot>addDir()</slot>
   <slot>showPreferences()</slot>
   <slot>checkSimilarity()</slot>
   <slot>toggleShowHiddenFiles(bool)</slot>
