@@ -2,6 +2,7 @@
 #define INPUTFILESMODEL_H
 
 #include <QAbstractTableModel>
+#include <QSortFilterProxyModel>
 #include <QMutex>
 
 QString humanReadableFileSize(const qint64 size);
@@ -23,8 +24,11 @@ class InputFileItem
 		QString getPath() const { return path; }
 		QString getFileName() const;
 		QString getMediaType() const { return mediaType; }
-		QString getDuration() const { return duration; }
+		double getDuration() const { return duration; }
+		QString getDurationTimestamp() const { return durationTimestamp; }
 		qint64 getSize() const { return size; }
+		int getWidth() const { return width; }
+		int getHeight() const { return height; }
 		QString getResolution() const { return resolution; }
 		QString getCodec() const { return codec; }
 		QString getContainer() const { return container; }
@@ -40,8 +44,11 @@ class InputFileItem
 	private:
 		QString path;
 		QString mediaType;
-		QString duration;
+		double duration;
+		QString durationTimestamp;
 		qint64 size;
+		int width;
+		int height;
 		QString resolution;
 		QString codec;
 		QString container;
@@ -77,5 +84,12 @@ class InputFilesModel: public QAbstractTableModel
 		QMutex addInputFileItemsMutex;
 		QVector<InputFileItem> inputFileItems;
 };
+
+class SortFilterProxyModel: public QSortFilterProxyModel
+{
+	public:
+		explicit SortFilterProxyModel(QObject *parent = nullptr): QSortFilterProxyModel(parent) { ; }
+};
+
 
 #endif // INPUTFILESMODEL_H

@@ -15,7 +15,7 @@ static QString secondsToTimestamp(double seconds) {
 	seconds = fmod(seconds, 60);
 	minutes = fmod(minutes, 60);
 
-	return QString().sprintf("%" PRId64 ":%" PRId64 ":%0.3f", hours, minutes, seconds);
+	return QString().sprintf("%0.2" PRId64 ":%0.2" PRId64 ":%06.3f", hours, minutes, seconds);
 }
 
 QString humanReadableFileSize(const qint64 size)
@@ -46,6 +46,9 @@ InputFileItem::InputFileItem(const QString path)
 {
 	this->path = path;
 	this->size = 0;
+	this->duration = 0.0;
+	this->width = 0;
+	this->height = 0;
 	this->status = Loading;
 	this->currentInfoPieces = 0;
 }
@@ -61,22 +64,29 @@ int InputFileItem::getVideoInfo()
 		switch (media.getMediaType()) {
 			case MEDIA_TYPE_UNKNOWN:
 				this->mediaType = "Unknown";
-				this->duration = "N/A";
+				this->duration = 0;
+				this->durationTimestamp = "N/A";
 				this->resolution = "N/A";
 
 				break;
 
 			case MEDIA_TYPE_VIDEO:
 				this->mediaType = "Video";
-				this->duration = secondsToTimestamp(media.getDuration());
-				this->resolution = QString().sprintf("%dx%d", media.getWidth(), media.getHeight());
+				this->duration = media.getDuration();
+				this->durationTimestamp = secondsToTimestamp(media.getDuration());
+				this->width = media.getWidth();
+				this->height = media.getHeight();
+				this->resolution = QString().sprintf("%dx%d", width, height);
 
 				break;
 
 			case MEDIA_TYPE_IMAGE:
 				this->mediaType = "Image";
-				this->duration = "N/A";
-				this->resolution = QString().sprintf("%dx%d", media.getWidth(), media.getHeight());
+				this->duration = 0;
+				this->durationTimestamp = "N/A";
+				this->width = media.getWidth();
+				this->height = media.getHeight();
+				this->resolution = QString().sprintf("%dx%d", width, height);
 
 				break;
 		}
@@ -161,6 +171,58 @@ QVariant InputFilesModel::data(const QModelIndex &index, int role) const
 
 	InputFileItem item = inputFileItems[index.row()];
 
+	// Our UserRole implemnetation is used for sorting.
+	if (role == Qt::UserRole) {
+		switch (index.column()) {
+			case 2:
+				// Can't use std::numeric_limits<double>::max() because subtraction from it
+				// apparently doesn't do anything...?
+				switch (item.getStatus()) {
+					case Loading:
+						return (double)(std::numeric_limits<int>::max() - 1);
+
+					case Ready:
+						if (item.getDurationTimestamp() == "N/A")
+							return std::numeric_limits<double>::max();
+
+						return item.getDuration();
+
+					case Failed:
+						return (double)(std::numeric_limits<int>::max() - 2);
+				}
+
+			case 3:
+				switch (item.getStatus()) {
+					case Loading:
+						return std::numeric_limits<qint64>::max();;
+
+					case Ready:
+						return item.getSize();
+
+					case Failed:
+						return std::numeric_limits<qint64>::max() - 1;
+				}
+
+			case 4:
+				switch (item.getStatus()) {
+					case Loading:
+						return std::numeric_limits<int>::max() - 1;
+
+					case Ready:
+						if (item.getResolution() == "N/A")
+							return std::numeric_limits<int>::max();
+
+						return item.getWidth() * item.getHeight();
+
+					case Failed:
+						return std::numeric_limits<int>::max() - 2;
+				}
+		}
+
+		// No other special sorting, so lets turn this into a DisplayRole and continue.
+		role = Qt::DisplayRole;
+	}
+
 	if (role == Qt::DisplayRole) {
 		switch (index.column()) {
 			case 0:
@@ -184,7 +246,7 @@ QVariant InputFilesModel::data(const QModelIndex &index, int role) const
 						return item.getLoadingPlaceholder();
 
 					case Ready:
-						return item.getDuration();
+						return item.getDurationTimestamp();
 
 					case Failed:
 						return item.getErrorPlaceholder();
@@ -201,6 +263,7 @@ QVariant InputFilesModel::data(const QModelIndex &index, int role) const
 					case Failed:
 						return item.getErrorPlaceholder();
 				}
+
 			case 4:
 				switch (item.getStatus()) {
 					case Loading:

@@ -13,12 +13,18 @@ MainWindow::MainWindow(QWidget *parent): QMainWindow(parent), ui(new Ui::MainWin
 {
 	ui->setupUi(this);
 
-	inputFilesModel = new InputFilesModel(ui->inputFilesTableView);
 	timeToDie = false;
 	prefs = NULL;
 
-	ui->inputFilesTableView->setModel(inputFilesModel);
-	ui->statusBar->showMessage(QString("%1 videos").arg(inputFilesModel->rowCount()));
+	sortProxyModel.setSourceModel(&inputFilesModel);
+	sortProxyModel.setDynamicSortFilter(true);
+	sortProxyModel.setSortRole(Qt::UserRole);
+
+	ui->inputFilesTableView->setModel(&sortProxyModel);
+	ui->inputFilesTableView->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+	ui->inputFilesTableView->horizontalHeader()->setSortIndicator(0, Qt::AscendingOrder);
+
+	ui->statusBar->showMessage(QString("%1 videos").arg(inputFilesModel.rowCount()));
 
 	connect(ui->inputFilesTableView->selectionModel(),
 			&QItemSelectionModel::selectionChanged,	this,
@@ -31,6 +37,8 @@ MainWindow::MainWindow(QWidget *parent): QMainWindow(parent), ui(new Ui::MainWin
 MainWindow::~MainWindow()
 {
 	delete ui;
+
+	ui = NULL;
 }
 
 void MainWindow::closeEvent(QCloseEvent *event) {
@@ -61,7 +69,7 @@ void MainWindow::addVideoFiles()
 			if (timeToDie)
 				return;
 
-			inputFilesModel->add(path);
+			inputFilesModel.add(path);
 
 			emit inputFilesListChanged();
 		}
@@ -83,7 +91,7 @@ void MainWindow::addVideoDir()
 				QFileInfo info(iter.next());
 
 				if (info.isFile()) {
-					inputFilesModel->add(info.filePath());
+					inputFilesModel.add(info.filePath());
 
 					emit inputFilesListChanged();
 				}
@@ -98,7 +106,7 @@ void MainWindow::removeVideoFiles()
 
 	if (selection->hasSelection()) {
 		foreach (QModelIndex index, selection->selectedRows()) {
-			inputFilesModel->remove(index);
+			inputFilesModel.remove(index);
 
 			emit inputFilesListChanged();
 		}
@@ -107,7 +115,7 @@ void MainWindow::removeVideoFiles()
 
 void MainWindow::clearVideoFiles()
 {
-	inputFilesModel->clear();
+	inputFilesModel.clear();
 
 	emit inputFilesListChanged();
 }
@@ -129,16 +137,11 @@ void MainWindow::applyPreferences()
 }
 
 void MainWindow::updateInputFileCounter() {
-	ui->clearPushButton->setEnabled(inputFilesModel->rowCount() > 0);
-	ui->statusBar->showMessage(QString("%1 videos").arg(inputFilesModel->rowCount()));
+	ui->clearPushButton->setEnabled(inputFilesModel.rowCount() > 0);
+	ui->statusBar->showMessage(QString("%1 videos").arg(inputFilesModel.rowCount()));
 }
 
 void MainWindow::checkSimilarity()
 {
-	MediaUtility media = MediaUtility("/home/simon/frame0.ppm");
-	int ret = 0;
 
-	if ((ret = media.open()) != 0) {
-		throw "error";
-	}
 }

@@ -3,6 +3,8 @@
 
 #include <QMainWindow>
 
+#include <inputfilesmodel.h>
+
 namespace Ui {
 	class MainWindow;
 }
@@ -24,8 +26,9 @@ class MainWindow: public QMainWindow
 	private:
 		Ui::MainWindow *ui;
 		Preferences *prefs;
+		InputFilesModel inputFilesModel;
+		SortFilterProxyModel sortProxyModel;
 
-		InputFilesModel *inputFilesModel;
 		bool timeToDie;
 
 	signals:
