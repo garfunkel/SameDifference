@@ -75,6 +75,13 @@
          </spacer>
         </item>
         <item>
+         <widget class="QCheckBox" name="showHiddenCheckBox">
+          <property name="text">
+           <string>Show errors &amp;&amp; hidden files</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QPushButton" name="preferencesPushButton">
           <property name="text">
            <string>Preferences</string>
@@ -216,7 +223,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>65</x>
-     <y>597</y>
+     <y>647</y>
     </hint>
     <hint type="destinationlabel">
      <x>695</x>
@@ -247,7 +254,7 @@
    <slot>showPreferences()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>611</x>
+     <x>911</x>
      <y>30</y>
     </hint>
     <hint type="destinationlabel">
@@ -263,12 +270,28 @@
    <slot>checkSimilarity()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>524</x>
-     <y>594</y>
+     <x>824</x>
+     <y>644</y>
     </hint>
     <hint type="destinationlabel">
      <x>902</x>
      <y>550</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>showHiddenCheckBox</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>toggleShowHiddenFiles(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>673</x>
+     <y>28</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>932</x>
+     <y>104</y>
     </hint>
    </hints>
   </connection>
@@ -281,5 +304,6 @@
   <slot>addVideoDir()</slot>
   <slot>showPreferences()</slot>
   <slot>checkSimilarity()</slot>
+  <slot>toggleShowHiddenFiles(bool)</slot>
  </slots>
 </ui>

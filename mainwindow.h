@@ -46,6 +46,7 @@ class MainWindow: public QMainWindow
 
 	private slots:
 		void applyPreferences();
+		void toggleShowHiddenFiles(const bool show);
 };
 
 #endif // MAINWINDOW_H

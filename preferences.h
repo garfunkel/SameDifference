@@ -22,14 +22,14 @@ class Preferences : public QDialog
 	Q_OBJECT
 
 	public:
-		static const CheckFiles DEFAULT_CHECK_FILES;
 		static const int DEFAULT_SIMILARITY_THRESHOLD;
+		static const CheckFiles DEFAULT_CHECK_FILES;
 
 		explicit Preferences(QWidget *parent = 0);
 		~Preferences();
 
-		//CheckFiles getCheckFiles() const { return ; }
-		//int getSimilarityThreshold() const { return ; }
+		int getSimilarityThreshold() const;
+		CheckFiles getCheckFiles() const;
 
 	private slots:
 		void restoreDefaults();

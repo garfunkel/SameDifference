@@ -61,3 +61,14 @@ void Preferences::cancelSettings()
 	ui->similarityThresholdHorizontalSlider->setValue(settings.value(SETTING_SIMILARITY_THRESHOLD, DEFAULT_SIMILARITY_THRESHOLD).toInt());
 	ui->checkFilesComboBox->setCurrentIndex(settings.value(SETTING_CHECK_FILES, DEFAULT_CHECK_FILES).toInt());
 }
+
+int Preferences::getSimilarityThreshold() const
+{
+	return settings.value(SETTING_SIMILARITY_THRESHOLD, DEFAULT_SIMILARITY_THRESHOLD).toInt();
+}
+
+CheckFiles Preferences::getCheckFiles() const
+{
+	return (CheckFiles)settings.value(SETTING_CHECK_FILES, DEFAULT_CHECK_FILES).toInt();
+}
+

@@ -14,11 +14,12 @@ MainWindow::MainWindow(QWidget *parent): QMainWindow(parent), ui(new Ui::MainWin
 	ui->setupUi(this);
 
 	timeToDie = false;
-	prefs = NULL;
+	prefs = new Preferences(this);
 
 	sortProxyModel.setSourceModel(&inputFilesModel);
 	sortProxyModel.setDynamicSortFilter(true);
 	sortProxyModel.setSortRole(Qt::UserRole);
+	sortProxyModel.setFilterKeyColumn(1);
 
 	ui->inputFilesTableView->setModel(&sortProxyModel);
 	ui->inputFilesTableView->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
@@ -26,12 +27,16 @@ MainWindow::MainWindow(QWidget *parent): QMainWindow(parent), ui(new Ui::MainWin
 
 	ui->statusBar->showMessage(QString("%1 videos").arg(inputFilesModel.rowCount()));
 
+	toggleShowHiddenFiles(ui->showHiddenCheckBox->isChecked());
+
 	connect(ui->inputFilesTableView->selectionModel(),
 			&QItemSelectionModel::selectionChanged,	this,
 			&MainWindow::inputVideoSelectionChanged);
 
 	connect(this, &MainWindow::inputFilesListChanged, this,
 			&MainWindow::updateInputFileCounter);
+
+	connect(prefs, &Preferences::accepted, this, &MainWindow::applyPreferences);
 }
 
 MainWindow::~MainWindow()
@@ -122,23 +127,47 @@ void MainWindow::clearVideoFiles()
 
 void MainWindow::showPreferences()
 {
-	if (!prefs) {
-		prefs = new Preferences(this);
-
-		connect(prefs, &Preferences::accepted, this, &MainWindow::applyPreferences);
-	}
-
 	prefs->show();
 }
 
 void MainWindow::applyPreferences()
 {
-
+	toggleShowHiddenFiles(ui->showHiddenCheckBox->isChecked());
 }
 
-void MainWindow::updateInputFileCounter() {
+void MainWindow::updateInputFileCounter()
+{
 	ui->clearPushButton->setEnabled(inputFilesModel.rowCount() > 0);
 	ui->statusBar->showMessage(QString("%1 videos").arg(inputFilesModel.rowCount()));
+}
+
+void MainWindow::toggleShowHiddenFiles(const bool show)
+{
+	if (show) {
+		sortProxyModel.setFilterFixedString(QString());
+	} else {
+		switch (prefs->getCheckFiles()) {
+			case VideosAndImages:
+				sortProxyModel.setFilterRegExp("(Video|Image)");
+
+				break;
+
+			case Videos:
+				sortProxyModel.setFilterFixedString("Video");
+
+				break;
+
+			case Images:
+				sortProxyModel.setFilterFixedString("Image");
+
+				break;
+
+			case All:
+				sortProxyModel.setFilterRegExp("(Video|Image|Unknown)");
+
+				break;
+		}
+	}
 }
 
 void MainWindow::checkSimilarity()
