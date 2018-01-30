@@ -4,6 +4,10 @@
 #include <cmath>
 #include <QMutexLocker>
 #include <cinttypes>
+#include <QtConcurrent/QtConcurrent>
+#include <QDebug>
+
+#include <algorithm>
 
 #include "inputfilesmodel.h"
 #include "mediautility.h"
@@ -109,6 +113,7 @@ QString InputFileItem::getFileName() const
 
 InputFilesModel::InputFilesModel(QObject *parent): QAbstractTableModel(parent)
 {
+	threadPool.setExpiryTimeout(-1);
 }
 
 QVariant InputFilesModel::headerData(int section, Qt::Orientation orientation, int role) const
@@ -163,8 +168,6 @@ QVariant InputFilesModel::data(const QModelIndex &index, int role) const
 {
 	if (!index.isValid())
 		return QVariant();
-
-	QMutexLocker removeLocker((QMutex*)&removeInputFileItemsMutex);
 
 	if (index.row() >= inputFileItems.length())
 		return QVariant();
@@ -327,8 +330,6 @@ QVariant InputFilesModel::data(const QModelIndex &index, int role) const
 
 void InputFilesModel::add(const InputFileItem item)
 {
-	QMutexLocker addLocker(&addInputFileItemsMutex);
-
 	if (!inputFileItems.contains(item)) {
 		int inputFileItemsLength = inputFileItems.length();
 
@@ -336,27 +337,59 @@ void InputFilesModel::add(const InputFileItem item)
 		inputFileItems.append(item);
 		endInsertRows();
 
-		inputFileItems[inputFileItemsLength].getVideoInfo();
+		QtConcurrent::run(&threadPool, [=] {
+			if (!inputFileItems.contains(item))
+				return;
 
-		emit dataChanged(createIndex(inputFileItemsLength, 1), createIndex(inputFileItemsLength, 5));
+			InputFileItem item2 = item;
+			item2.getVideoInfo();
+
+			int index = inputFileItems.indexOf(item);
+
+			if (index >= 0) {
+				inputFileItems[index] = item2;
+			}
+
+			qDebug() << index;
+		});
+
+		//processingQueue.enqueue(item.getPath());
+		//inputFileItems[inputFileItemsLength].getVideoInfo();
+
+		//emit dataChanged(createIndex(inputFileItemsLength, 1), createIndex(inputFileItemsLength, 5));
 	}
 }
 
-void InputFilesModel::remove(const QModelIndex index)
+bool InputFilesModel::removeRow(int row, const QModelIndex &parent)
 {
-	QMutexLocker removeLocker(&removeInputFileItemsMutex);
-
-	if (index.row() < inputFileItems.length()) {
-		beginRemoveRows(QModelIndex(), index.row(), index.row());
-		inputFileItems.remove(index.row());
+	if (row < inputFileItems.length()) {
+		beginRemoveRows(parent, row, row);
+		inputFileItems.remove(row);
 		endRemoveRows();
 	}
+
+	return false;
+}
+
+bool InputFilesModel::removeSelection(const QModelIndexList selection)
+{
+	QVector<int> rows;
+
+	foreach (QModelIndex index, selection) {
+		rows.append(index.row());
+	}
+
+	std::sort(rows.begin(), rows.end(), std::greater<int>());
+
+	foreach (int row, rows) {
+		removeRow(row);
+	}
+
+	return true;
 }
 
 void InputFilesModel::clear()
 {
-	QMutexLocker removeLocker(&removeInputFileItemsMutex);
-
 	if (!inputFileItems.isEmpty()) {
 		beginRemoveRows(QModelIndex(), 0, inputFileItems.length() - 1);
 		inputFileItems.clear();

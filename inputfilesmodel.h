@@ -4,6 +4,8 @@
 #include <QAbstractTableModel>
 #include <QSortFilterProxyModel>
 #include <QMutex>
+#include <QThreadPool>
+//#include <QQueue>
 
 QString humanReadableFileSize(const qint64 size);
 
@@ -76,13 +78,14 @@ class InputFilesModel: public QAbstractTableModel
 
 		// Model management:
 		void add(const InputFileItem item);
-		void remove(const QModelIndex index);
+		bool removeRow(int row, const QModelIndex &parent = QModelIndex());
+		bool removeSelection(const QModelIndexList selection);
 		void clear();
 
 	private:
-		QMutex removeInputFileItemsMutex;
-		QMutex addInputFileItemsMutex;
 		QVector<InputFileItem> inputFileItems;
+		//QQueue<QString> processingQueue;
+		QThreadPool threadPool;
 };
 
 class SortFilterProxyModel: public QSortFilterProxyModel

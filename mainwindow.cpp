@@ -1,4 +1,4 @@
-#include <QFileDialog>
+	#include <QFileDialog>
 #include <QDirIterator>
 #include <QtConcurrent/QtConcurrentRun>
 #include <QCloseEvent>
@@ -31,8 +31,7 @@ MainWindow::MainWindow(QWidget *parent): QMainWindow(parent), ui(new Ui::MainWin
 			&QItemSelectionModel::selectionChanged,	this,
 			&MainWindow::inputFileSelectionChanged);
 
-	connect(this, &MainWindow::inputFilesListChanged, this,
-			&MainWindow::updateInputFileCounter);
+	connect(this, &MainWindow::fileAdded, this, &MainWindow::addFile);
 
 	connect(prefs, &Preferences::accepted, this, &MainWindow::applyPreferences);
 
@@ -66,16 +65,13 @@ void MainWindow::addFiles()
 {
 	QStringList paths = QFileDialog::getOpenFileNames(this, tr(qPrintable(addFilesDialogTitle)), QDir::homePath());
 
-	QtConcurrent::run([=]() {
-		foreach (QString path, paths) {
-			if (timeToDie)
-				return;
+	foreach (QString path, paths) {
+		if (timeToDie)
+			return;
 
-			inputFilesModel.add(path);
-
-			emit inputFilesListChanged();
-		}
-	});
+		inputFilesModel.add(path);
+		updateInputFileCounter();
+	}
 }
 
 void MainWindow::addDir()
@@ -93,9 +89,7 @@ void MainWindow::addDir()
 				QFileInfo info(iter.next());
 
 				if (info.isFile()) {
-					inputFilesModel.add(info.filePath());
-
-					emit inputFilesListChanged();
+					emit fileAdded(info.filePath());
 				}
 			}
 		});
@@ -107,19 +101,22 @@ void MainWindow::removeFiles()
 	QItemSelectionModel *selection = ui->inputFilesTableView->selectionModel();
 
 	if (selection->hasSelection()) {
-		foreach (QModelIndex index, selection->selectedRows()) {
-			inputFilesModel.remove(index);
+		QModelIndexList rows;
 
-			emit inputFilesListChanged();
+		foreach (QModelIndex row, selection->selectedRows()) {
+			rows.append(sortProxyModel.mapToSource(row));
 		}
+
+		inputFilesModel.removeSelection(rows);
+
+		updateInputFileCounter();
 	}
 }
 
 void MainWindow::clearFiles()
 {
 	inputFilesModel.clear();
-
-	emit inputFilesListChanged();
+	updateInputFileCounter();
 }
 
 void MainWindow::showPreferences()
@@ -191,6 +188,12 @@ void MainWindow::toggleShowHiddenFiles(const bool show)
 				break;
 		}
 	}
+}
+
+void MainWindow::addFile(const QString path)
+{
+	inputFilesModel.add(path);
+	updateInputFileCounter();
 }
 
 void MainWindow::checkSimilarity()
