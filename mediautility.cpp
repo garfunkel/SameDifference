@@ -1,3 +1,5 @@
+#include <thread>
+
 extern "C" {
 	#include <libavcodec/avcodec.h>
 	#include <libavformat/avformat.h>
@@ -12,6 +14,8 @@ const int MediaUtility::FRAME_FINGERPRINT_SIZE = 64;
 const int MediaUtility::TWO_WAY_FRAME_FINGERPRINT_SIZE = MediaUtility::FRAME_FINGERPRINT_SIZE * 2;
 const int MediaUtility::NUM_FINGERPRINT_FRAMES = 10;
 const int MediaUtility::FINGERPRINT_SIZE = MediaUtility::TWO_WAY_FRAME_FINGERPRINT_SIZE * MediaUtility::NUM_FINGERPRINT_FRAMES;
+const int MediaUtility::BUFFER_SIZE_GREY_FRAME_9x8 = av_image_get_buffer_size(AV_PIX_FMT_GRAY8, 9, 8, 1) * sizeof(uint8_t);
+const int MediaUtility::BUFFER_SIZE_GREY_FRAME_8x9 = av_image_get_buffer_size(AV_PIX_FMT_GRAY8, 8, 9, 1) * sizeof(uint8_t);
 
 char *MediaUtility::getError(const int errNum) {
 	return av_err2str(errNum);
@@ -26,16 +30,20 @@ MediaUtility::MediaUtility(const char *path)
 	avVideoStreamIndex = -1;
 	mediaType = MEDIA_TYPE_UNKNOWN;
 	fingerprint = NULL;
+	swsContext9x8 = NULL;
+	swsContext8x9 = NULL;
 }
 
 MediaUtility::~MediaUtility()
 {
+	delete path;
+	path = NULL;
+
 	avcodec_close(avCodecContext);
 	avformat_close_input(&avFormatContext);
 
 	if (fingerprint) {
 		delete fingerprint;
-
 		fingerprint = NULL;
 	}
 }
@@ -68,30 +76,6 @@ int MediaUtility::open() {
 		return ret;
 	}
 
-	if (!(swsContext9x8 = sws_getContext(avCodecContext->width,
-										 avCodecContext->height,
-										 avCodecContext->pix_fmt,
-										 9,
-										 8,
-										 AV_PIX_FMT_GRAY8,
-										 0,
-										 NULL,
-										 NULL,
-										 NULL)))
-		return AVERROR_INVALIDDATA;
-
-	if (!(swsContext8x9 = sws_getContext(avCodecContext->width,
-										 avCodecContext->height,
-										 avCodecContext->pix_fmt,
-										 8,
-										 9,
-										 AV_PIX_FMT_GRAY8,
-										 0,
-										 NULL,
-										 NULL,
-										 NULL)))
-		return AVERROR_INVALIDDATA;
-
 	AVFrame *frame = NULL;
 
 	if ((frame = readFrame())) {
@@ -104,9 +88,10 @@ int MediaUtility::open() {
 		}
 
 		av_frame_free(&frame);
+
 		seek(0.0);
 
-		//computeFingerprint();
+		computeFingerprint();
 	}
 
 	return ret;
@@ -147,16 +132,38 @@ int MediaUtility::computeFingerprint()
 	 * and one at the end of the file.
 	 */
 	double duration = getDuration();
-	int ret = 0;
 
-	if (duration < 0) {
-		seek(0.0);
-
+	if (duration < 0)
 		return AVERROR_INVALIDDATA;
-	}
 
+	int ret = 0;
 	double pos = 0;
+	AVFrame *frame = NULL;
 	fingerprint = (uint8_t *)calloc(FINGERPRINT_SIZE, 1);
+
+	if (!swsContext9x8 && !(swsContext9x8 = sws_getContext(avCodecContext->width,
+														   avCodecContext->height,
+														   avCodecContext->pix_fmt,
+														   9,
+														   8,
+														   AV_PIX_FMT_GRAY8,
+														   0,
+														   NULL,
+														   NULL,
+														   NULL)))
+		return AVERROR_INVALIDDATA;
+
+	if (!swsContext8x9 && !(swsContext8x9 = sws_getContext(avCodecContext->width,
+														   avCodecContext->height,
+														   avCodecContext->pix_fmt,
+														   8,
+														   9,
+														   AV_PIX_FMT_GRAY8,
+														   0,
+														   NULL,
+														   NULL,
+														   NULL)))
+		return AVERROR_INVALIDDATA;
 
 	for (int i = 0; i < 10; i++) {
 		if (i == 9)
@@ -168,18 +175,22 @@ int MediaUtility::computeFingerprint()
 		if ((ret = seek(pos)) < 0)
 			break;
 
-		AVFrame *frame = readFrame();
-
-		if (!frame) {
+		if (!(frame = readFrame())) {
 			ret = AVERROR_INVALIDDATA;
 
 			break;
 		}
 
-		computeFrameFingerprint(frame, fingerprint + (128 * i), GREY_FRAME_TYPE_9x8);
+		std::thread compute9x8Thread(&MediaUtility::computeFrameFingerprint, this, frame, fingerprint + (128 * i), GREY_FRAME_TYPE_9x8);
+
 		computeFrameFingerprint(frame, fingerprint + (128 * i) + 64, GREY_FRAME_TYPE_8x9);
 
+		compute9x8Thread.join();
+
 		av_frame_free(&frame);
+
+		if (duration == 0.0)
+			break;
 	}
 
 	if (ret < 0) {
@@ -193,9 +204,8 @@ int MediaUtility::computeFingerprint()
 	return ret;
 }
 
-int MediaUtility::computeFrameFingerprint(const AVFrame *frame, uint8_t *frameFingerprint, const GREY_FRAME_TYPE frameType)
+int MediaUtility::computeFrameFingerprint(const AVFrame *frame, uint8_t *frameFingerprint, const GREY_FRAME_TYPE frameType) const
 {
-	int numBytes = 0;
 	AVFrame *greyFrame = av_frame_alloc();
 	uint8_t *buffer = NULL;
 	int xStart = 0;
@@ -203,23 +213,24 @@ int MediaUtility::computeFrameFingerprint(const AVFrame *frame, uint8_t *frameFi
 	int ret = 0;
 	uint8_t pixel = 0;
 	uint8_t comparisonPixel = 0;
+	SwsContext *swsContext = NULL;
 
 	switch (frameType) {
 		case GREY_FRAME_TYPE_9x8:
-			numBytes = av_image_get_buffer_size(AV_PIX_FMT_GRAY8, 9, 8, 1);
-			buffer = (uint8_t *)av_malloc(numBytes * sizeof(uint8_t));
+			buffer = (uint8_t *)av_malloc(BUFFER_SIZE_GREY_FRAME_9x8);
 			greyFrame->width = 9;
 			greyFrame->height = 8;
 			xStart = 1;
+			swsContext = swsContext9x8;
 
 			break;
 
 		case GREY_FRAME_TYPE_8x9:
-			numBytes = av_image_get_buffer_size(AV_PIX_FMT_GRAY8, 8, 9, 1);
-			buffer = (uint8_t *)av_malloc(numBytes * sizeof(uint8_t));
+			buffer = (uint8_t *)av_malloc(BUFFER_SIZE_GREY_FRAME_8x9);
 			greyFrame->width = 8;
 			greyFrame->height = 9;
 			yStart = 1;
+			swsContext = swsContext8x9;
 
 			break;
 	}
@@ -227,7 +238,7 @@ int MediaUtility::computeFrameFingerprint(const AVFrame *frame, uint8_t *frameFi
 	if ((ret = av_image_fill_arrays(greyFrame->data, greyFrame->linesize, buffer, AV_PIX_FMT_GRAY8, greyFrame->width, greyFrame->height, 1)) < 0)
 		return ret;
 
-	if ((ret = sws_scale(swsContext9x8,
+	if ((ret = sws_scale(swsContext,
 						 (uint8_t const *const *)frame->data,
 						 frame->linesize,
 						 0,
@@ -241,9 +252,8 @@ int MediaUtility::computeFrameFingerprint(const AVFrame *frame, uint8_t *frameFi
 			pixel = *(greyFrame->data[0] + (y * greyFrame->width) + x);
 			comparisonPixel = *(greyFrame->data[0] + ((y - yStart) * greyFrame->width) + (x - xStart));
 
-			if (pixel >= comparisonPixel) {
+			if (pixel >= comparisonPixel)
 				memset(frameFingerprint + ((y - yStart) * (greyFrame->width - xStart) + (x - xStart)), 1, 1);
-			}
 		}
 	}
 
@@ -328,7 +338,6 @@ AVFrame *MediaUtility::readFrame()
 			avFrame = nextAvFrame;
 			nextAvFrame = tmpFrame;
 			tmpFrame = NULL;
-
 			newPosition = av_frame_get_best_effort_timestamp(avFrame) * av_q2d(avFormatContext->streams[avVideoStreamIndex]->time_base);
 
 			// This frame is >= our seek position, so this is the frame we want to return.
@@ -345,33 +354,29 @@ AVFrame *MediaUtility::readFrame()
 		// Read packets from the format context until we get a video packet (or error).
 		while ((ret = av_read_frame(avFormatContext, &avPacket)) >= 0) {
 			// We found a video packet.
-			if (avPacket.stream_index == avVideoStreamIndex) {
+			if (avPacket.stream_index == avVideoStreamIndex)
 				break;
-			}
 
 			av_packet_unref(&avPacket);
 		}
 
 		// av_read_frame() returned an error. Send NULL packet to signal end of stream.
 		if (ret < 0) {
-			if ((avcodec_send_packet(avCodecContext, NULL)) < 0) {
+			if ((avcodec_send_packet(avCodecContext, NULL)) < 0)
 				break;
-			}
 		}
 
 		else
-			if ((avcodec_send_packet(avCodecContext, &avPacket)) < 0) {
+			if ((avcodec_send_packet(avCodecContext, &avPacket)) < 0)
 				break;
-			}
 	}
 
 	av_packet_unref(&avPacket);
 	av_frame_free(&nextAvFrame);
 
 	// Doesn't look like there was a frame to decode... return NULL.
-	if (av_frame_get_best_effort_timestamp(avFrame) == AV_NOPTS_VALUE) {
+	if (av_frame_get_best_effort_timestamp(avFrame) == AV_NOPTS_VALUE)
 		av_frame_free(&avFrame);
-	}
 
 	return avFrame;
 }

@@ -37,6 +37,8 @@ class MediaUtility
 		static const int FRAME_FINGERPRINT_SIZE;
 		static const int TWO_WAY_FRAME_FINGERPRINT_SIZE;
 		static const int NUM_FINGERPRINT_FRAMES;
+		static const int BUFFER_SIZE_GREY_FRAME_9x8;
+		static const int BUFFER_SIZE_GREY_FRAME_8x9;
 
 		enum GREY_FRAME_TYPE {
 			GREY_FRAME_TYPE_9x8,
@@ -56,7 +58,7 @@ class MediaUtility
 		int computeFingerprint();
 		int seek(const double seconds);
 		AVFrame *readFrame();
-		int computeFrameFingerprint(const AVFrame *frame, uint8_t *frameFingerprint, const GREY_FRAME_TYPE);
+		int computeFrameFingerprint(const AVFrame *frame, uint8_t *frameFingerprint, const GREY_FRAME_TYPE) const;
 		void save(AVFrame *frame, int index);
 };
 
