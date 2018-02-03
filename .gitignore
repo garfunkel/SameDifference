@@ -1,14 +1,47 @@
-# Binaries for programs and plugins
-*.exe
-*.dll
+# C++ objects and libs
+
+*.slo
+*.lo
+*.o
+*.a
+*.la
+*.lai
 *.so
+*.dll
 *.dylib
 
-# Test binary, build with `go test -c`
-*.test
+# Qt-es
 
-# Output of the go coverage tool, specifically when used with LiteIDE
-*.out
+object_script.*.Release
+object_script.*.Debug
+*_plugin_import.cpp
+/.qmake.cache
+/.qmake.stash
+*.pro.user
+*.pro.user.*
+*.qbs.user
+*.qbs.user.*
+*.moc
+moc_*.cpp
+moc_*.h
+qrc_*.cpp
+ui_*.h
+*.qmlc
+*.jsc
+Makefile*
+*build-*
 
-# Project-local glide cache, RE: https://github.com/Masterminds/glide/issues/736
-.glide/
+# Qt unit tests
+target_wrapper.*
+
+# QtCreator
+
+*.autosave
+
+# QtCtreator Qml
+*.qmlproject.user
+*.qmlproject.user.*
+
+# QtCtreator CMake
+CMakeLists.txt.user*
+

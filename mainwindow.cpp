@@ -47,12 +47,11 @@ MainWindow::~MainWindow()
 	ui = NULL;
 }
 
-void MainWindow::closeEvent(QCloseEvent *event) {
+void MainWindow::closeEvent(QCloseEvent *event)
+{
 	Q_UNUSED(event)
 
 	timeToDie = true;
-
-	//QThreadPool::globalInstance()->waitForDone();
 }
 
 void MainWindow::inputFileSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected)
