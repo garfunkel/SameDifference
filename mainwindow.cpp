@@ -161,14 +161,19 @@ void MainWindow::updateInputFileCounter()
 
 	ui->clearFilesPushButton->setEnabled(total > 0);
 
-	if (loading == 0)
-		ui->statusBar->showMessage(QString("%1 files loaded").arg(total));
+	if (ui->showHiddenCheckBox->isChecked()) {
+		if (loading == 0)
+			ui->statusBar->showMessage(QString("%1 files loaded").arg(total));
 
-	else if (ui->showHiddenCheckBox->isChecked())
-		ui->statusBar->showMessage(QString("Processing... %1 / %2 files loaded").arg(total - loading).arg(total));
+		else
+			ui->statusBar->showMessage(QString("Processing... %1 / %2 files loaded").arg(total - loading).arg(total));
+	} else {
+		if (loading == 0)
+			ui->statusBar->showMessage(QString("%1 files loaded").arg(filteredTotal));
 
-	else
-		ui->statusBar->showMessage(QString("Processing... %1 files loaded").arg(filteredTotal));
+		else
+			ui->statusBar->showMessage(QString("Processing... %1 / %2 files loaded").arg(filteredTotal).arg(total));
+	}
 }
 
 void MainWindow::toggleShowHiddenFiles(const bool show)
