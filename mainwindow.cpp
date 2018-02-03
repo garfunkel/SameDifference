@@ -31,7 +31,8 @@ MainWindow::MainWindow(QWidget *parent): QMainWindow(parent), ui(new Ui::MainWin
 			&QItemSelectionModel::selectionChanged,	this,
 			&MainWindow::inputFileSelectionChanged);
 
-	connect(this, &MainWindow::fileAdded, this, &MainWindow::addFile);
+	connect(this, &MainWindow::fileAdded, this, &MainWindow::addFile, Qt::BlockingQueuedConnection);
+	connect(this, &MainWindow::fileInfoAdded, this, &MainWindow::addFileInfo, Qt::BlockingQueuedConnection);
 
 	connect(prefs, &Preferences::accepted, this, &MainWindow::applyPreferences);
 
@@ -51,7 +52,7 @@ void MainWindow::closeEvent(QCloseEvent *event) {
 
 	timeToDie = true;
 
-	QThreadPool::globalInstance()->waitForDone();
+	//QThreadPool::globalInstance()->waitForDone();
 }
 
 void MainWindow::inputFileSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected)
@@ -65,13 +66,14 @@ void MainWindow::addFiles()
 {
 	QStringList paths = QFileDialog::getOpenFileNames(this, tr(qPrintable(addFilesDialogTitle)), QDir::homePath());
 
-	foreach (QString path, paths) {
-		if (timeToDie)
-			return;
+	QtConcurrent::run([=]() {
+		foreach (QString path, paths) {
+			if (timeToDie)
+				return;
 
-		inputFilesModel.add(path);
-		updateInputFileCounter();
-	}
+			emit fileAdded(path);
+		}
+	});
 }
 
 void MainWindow::addDir()
@@ -88,9 +90,8 @@ void MainWindow::addDir()
 
 				QFileInfo info(iter.next());
 
-				if (info.isFile()) {
+				if (info.isFile())
 					emit fileAdded(info.filePath());
-				}
 			}
 		});
 	}
@@ -193,7 +194,21 @@ void MainWindow::toggleShowHiddenFiles(const bool show)
 void MainWindow::addFile(const QString path)
 {
 	inputFilesModel.add(path);
+
 	updateInputFileCounter();
+
+	QtConcurrent::run([=]() {
+		InputFileItem item(path);
+
+		item.getVideoInfo();
+
+		emit fileInfoAdded(item);
+	});
+}
+
+void MainWindow::addFileInfo(const InputFileItem item)
+{
+	inputFilesModel.update(item);
 }
 
 void MainWindow::checkSimilarity()

@@ -32,6 +32,7 @@ class MainWindow: public QMainWindow
 
 	signals:
 		void fileAdded(QString path);
+		void fileInfoAdded(InputFileItem item);
 
 	public slots:
 		void inputFileSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
@@ -45,6 +46,7 @@ class MainWindow: public QMainWindow
 
 	private slots:
 		void addFile(const QString path);
+		void addFileInfo(const InputFileItem item);
 		void applyPreferences();
 		void toggleShowHiddenFiles(const bool show);
 };

@@ -111,9 +111,9 @@ QString InputFileItem::getFileName() const
 	return QFileInfo(path).fileName();
 }
 
-InputFilesModel::InputFilesModel(QObject *parent): QAbstractTableModel(parent)
+InputFilesModel::InputFilesModel(QObject *parent):
+	QAbstractTableModel(parent)
 {
-	threadPool.setExpiryTimeout(-1);
 }
 
 QVariant InputFilesModel::headerData(int section, Qt::Orientation orientation, int role) const
@@ -169,8 +169,9 @@ QVariant InputFilesModel::data(const QModelIndex &index, int role) const
 	if (!index.isValid())
 		return QVariant();
 
-	if (index.row() >= inputFileItems.length())
+	if (index.row() >= inputFileItems.length()) {
 		return QVariant();
+	}
 
 	InputFileItem item = inputFileItems[index.row()];
 
@@ -331,32 +332,22 @@ QVariant InputFilesModel::data(const QModelIndex &index, int role) const
 void InputFilesModel::add(const InputFileItem item)
 {
 	if (!inputFileItems.contains(item)) {
-		int inputFileItemsLength = inputFileItems.length();
+		int index = inputFileItems.length();
 
-		beginInsertRows(QModelIndex(), inputFileItemsLength, inputFileItemsLength);
+		beginInsertRows(QModelIndex(), index, index);
 		inputFileItems.append(item);
 		endInsertRows();
+	}
+}
 
-		QtConcurrent::run(&threadPool, [=] {
-			if (!inputFileItems.contains(item))
-				return;
+void InputFilesModel::update(const InputFileItem item)
+{
+	int index = 0;
 
-			InputFileItem item2 = item;
-			item2.getVideoInfo();
+	if ((index = inputFileItems.indexOf(item)) >= 0) {
+		inputFileItems[index] = item;
 
-			int index = inputFileItems.indexOf(item);
-
-			if (index >= 0) {
-				inputFileItems[index] = item2;
-			}
-
-			qDebug() << index;
-		});
-
-		//processingQueue.enqueue(item.getPath());
-		//inputFileItems[inputFileItemsLength].getVideoInfo();
-
-		//emit dataChanged(createIndex(inputFileItemsLength, 1), createIndex(inputFileItemsLength, 5));
+		emit dataChanged(createIndex(index, 0), createIndex(index, InputFileItem::requiredInfoPieces - 1));
 	}
 }
 

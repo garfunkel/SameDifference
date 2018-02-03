@@ -1,4 +1,5 @@
 #include <QApplication>
+#include <QThreadPool>
 
 extern "C" {
 	#include <libavformat/avformat.h>
@@ -10,6 +11,7 @@ int main(int argc, char *argv[])
 {
 	av_register_all();
 	av_log_set_level(AV_LOG_QUIET);
+	QThreadPool::globalInstance()->setExpiryTimeout(-1);
 
 	QCoreApplication::setOrganizationName("Simon Allen");
 	QCoreApplication::setOrganizationDomain("simonallen.org");
