@@ -25,8 +25,6 @@ MainWindow::MainWindow(QWidget *parent): QMainWindow(parent), ui(new Ui::MainWin
 	ui->inputFilesTableView->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
 	ui->inputFilesTableView->horizontalHeader()->setSortIndicator(0, Qt::AscendingOrder);
 
-	ui->statusBar->showMessage(QString("%1 files").arg(inputFilesModel.rowCount()));
-
 	connect(ui->inputFilesTableView->selectionModel(),
 			&QItemSelectionModel::selectionChanged,	this,
 			&MainWindow::inputFileSelectionChanged);
@@ -157,8 +155,20 @@ void MainWindow::applyPreferences()
 
 void MainWindow::updateInputFileCounter()
 {
-	ui->clearFilesPushButton->setEnabled(inputFilesModel.rowCount() > 0);
-	ui->statusBar->showMessage(QString("%1 files").arg(inputFilesModel.rowCount()));
+	int total = inputFilesModel.rowCount();
+	int filteredTotal = sortProxyModel.rowCount();
+	int loading = inputFilesModel.match(sortProxyModel.index(0, 1), Qt::DisplayRole, "Loading", -1).length();
+
+	ui->clearFilesPushButton->setEnabled(total > 0);
+
+	if (loading == 0)
+		ui->statusBar->showMessage(QString("%1 files loaded").arg(total));
+
+	else if (ui->showHiddenCheckBox->isChecked())
+		ui->statusBar->showMessage(QString("Processing... %1 / %2 files loaded").arg(total - loading).arg(total));
+
+	else
+		ui->statusBar->showMessage(QString("Processing... %1 files loaded").arg(filteredTotal));
 }
 
 void MainWindow::toggleShowHiddenFiles(const bool show)
@@ -188,6 +198,8 @@ void MainWindow::toggleShowHiddenFiles(const bool show)
 				break;
 		}
 	}
+
+	updateInputFileCounter();
 }
 
 void MainWindow::addFile(const QString path)
@@ -197,6 +209,9 @@ void MainWindow::addFile(const QString path)
 	updateInputFileCounter();
 
 	QtConcurrent::run([=]() {
+		if (timeToDie)
+			return;
+
 		InputFileItem item(path);
 
 		item.getInfo();
@@ -208,6 +223,8 @@ void MainWindow::addFile(const QString path)
 void MainWindow::addFileInfo(const InputFileItem item)
 {
 	inputFilesModel.update(item);
+
+	updateInputFileCounter();
 }
 
 void MainWindow::checkSimilarity()
