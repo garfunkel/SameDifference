@@ -57,7 +57,7 @@ InputFileItem::InputFileItem(const QString path)
 	this->currentInfoPieces = 0;
 }
 
-int InputFileItem::getVideoInfo()
+int InputFileItem::getInfo()
 {
 	this->size = QFileInfo(path).size();
 	int ret = 0;

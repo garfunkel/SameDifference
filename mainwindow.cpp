@@ -199,7 +199,7 @@ void MainWindow::addFile(const QString path)
 	QtConcurrent::run([=]() {
 		InputFileItem item(path);
 
-		item.getVideoInfo();
+		item.getInfo();
 
 		emit fileInfoAdded(item);
 	});

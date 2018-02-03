@@ -106,7 +106,7 @@ int MediaUtility::open() {
 		av_frame_free(&frame);
 		seek(0.0);
 
-		//computeFingerprint();
+		computeFingerprint();
 	}
 
 	return ret;

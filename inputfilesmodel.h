@@ -35,7 +35,7 @@ class InputFileItem
 		QString getContainer() const { return container; }
 		InputFileItemStatus getStatus() const { return status; }
 		QString getError() { return error; }
-		int getVideoInfo();
+		int getInfo();
 
 		bool operator ==(const InputFileItem other) const { return path == other.path; }
 
