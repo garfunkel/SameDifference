@@ -3,8 +3,6 @@
 
 #include <QAbstractTableModel>
 #include <QSortFilterProxyModel>
-#include <QMutex>
-#include <QThreadPool>
 
 QString humanReadableFileSize(const qint64 size);
 
@@ -19,7 +17,7 @@ class InputFileItem
 	friend class QVector<InputFileItem>;
 
 	public:
-		static int requiredInfoPieces;
+		static const int requiredInfoPieces;
 
 		InputFileItem(const QString path);
 		QString getPath() const { return path; }

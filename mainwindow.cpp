@@ -1,4 +1,4 @@
-	#include <QFileDialog>
+#include <QFileDialog>
 #include <QDirIterator>
 #include <QtConcurrent/QtConcurrentRun>
 #include <QCloseEvent>
@@ -6,7 +6,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "preferences.h"
-#include "inputfilesmodel.h"
 #include "mediautility.h"
 
 MainWindow::MainWindow(QWidget *parent): QMainWindow(parent), ui(new Ui::MainWindow)

@@ -3,9 +3,12 @@
 
 #include <cstdint>
 
+extern "C" {
+	#include <libavutil/error.h>
+}
+
 struct AVFormatContext;
 struct AVCodecContext;
-struct AVCodec;
 struct AVFrame;
 struct SwsContext;
 
@@ -23,6 +26,7 @@ class MediaUtility
 		MediaUtility(const char *path);
 		~MediaUtility();
 
+		const char *getError(const int errNum);
 		int open();
 		double getDuration() const;
 		int getHeight() const;
@@ -30,8 +34,6 @@ class MediaUtility
 		const char *getCodec() const;
 		const char *getContainer() const;
 		MEDIA_TYPE getMediaType() const { return mediaType; }
-
-		static char *getError(const int errNum);
 
 	private:
 		static const int FRAME_FINGERPRINT_SIZE;
@@ -46,6 +48,7 @@ class MediaUtility
 		};
 
 		char *path;
+		char error[AV_ERROR_MAX_STRING_SIZE];
 		double position;
 		uint8_t *fingerprint;
 		MEDIA_TYPE mediaType;

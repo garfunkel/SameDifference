@@ -2,9 +2,7 @@
 #include <QFont>
 #include <QBrush>
 #include <cmath>
-#include <QMutexLocker>
 #include <cinttypes>
-#include <QtConcurrent/QtConcurrent>
 #include <QDebug>
 
 #include <algorithm>
@@ -44,7 +42,7 @@ QString humanReadableFileSize(const qint64 size)
 	return QString().setNum(s, 'f', 2) + " " + unit;
 }
 
-int InputFileItem::requiredInfoPieces = 7;
+const int InputFileItem::requiredInfoPieces = 7;
 
 InputFileItem::InputFileItem(const QString path)
 {
@@ -100,7 +98,7 @@ int InputFileItem::getInfo()
 		this->status = Ready;
 	} else {
 		this->status = Failed;
-		this->error = QString().sprintf("Error reading file - will not compare for similarity: %s.", media.getError(ret));
+		this->error = QString("Error reading file - will not compare for similarity: %1.").arg(media.getError(ret));
 	}
 
 	return ret;

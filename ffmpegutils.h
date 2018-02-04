@@ -1,4 +1,0 @@
-#ifndef FFMPEGUTILS_H
-#define FFMPEGUTILS_H
-
-#endif // FFMPEGUTILS_H
