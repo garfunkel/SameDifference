@@ -31,10 +31,11 @@
         <item>
          <widget class="QPushButton" name="addFilesPushButton">
           <property name="text">
-           <string>Add File</string>
+           <string>Add Files</string>
           </property>
           <property name="icon">
-           <iconset theme="list-add"/>
+           <iconset theme="list-add">
+            <normaloff>.</normaloff>.</iconset>
           </property>
          </widget>
         </item>
@@ -44,7 +45,8 @@
            <string>Add Folder</string>
           </property>
           <property name="icon">
-           <iconset theme="list-add"/>
+           <iconset theme="list-add">
+            <normaloff>.</normaloff>.</iconset>
           </property>
          </widget>
         </item>
@@ -54,10 +56,21 @@
            <bool>false</bool>
           </property>
           <property name="text">
-           <string>Remove Files</string>
+           <string>Remove</string>
           </property>
           <property name="icon">
-           <iconset theme="list-remove"/>
+           <iconset theme="list-remove">
+            <normaloff>.</normaloff>.</iconset>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="clearFilesPushButton">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>Clear</string>
           </property>
          </widget>
         </item>
@@ -129,40 +142,6 @@
          <bool>false</bool>
         </attribute>
        </widget>
-      </item>
-      <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_3">
-        <item>
-         <widget class="QPushButton" name="clearFilesPushButton">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <property name="text">
-           <string>Clear Files</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <spacer name="horizontalSpacer">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>40</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item>
-         <widget class="QPushButton" name="checkSimilarityPushButton">
-          <property name="text">
-           <string>Check Similarity</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
       </item>
      </layout>
     </item>
@@ -260,22 +239,6 @@
     <hint type="destinationlabel">
      <x>895</x>
      <y>93</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>checkSimilarityPushButton</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>checkSimilarity()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>824</x>
-     <y>644</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>902</x>
-     <y>550</y>
     </hint>
    </hints>
   </connection>

@@ -33,6 +33,7 @@ class MediaUtility
 		int getWidth() const;
 		const char *getCodec() const;
 		const char *getContainer() const;
+		const uint8_t *getFingerprint() const { return fingerprint; }
 		MEDIA_TYPE getMediaType() const { return mediaType; }
 
 	private:

@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QSortFilterProxyModel>
 
 #include <inputfilesmodel.h>
 
@@ -26,7 +27,7 @@ class MainWindow: public QMainWindow
 		Ui::MainWindow *ui;
 		Preferences *prefs;
 		InputFilesModel inputFilesModel;
-		SortFilterProxyModel sortProxyModel;
+		QSortFilterProxyModel sortProxyModel;
 		bool timeToDie;
 		QString addFilesDialogTitle;
 
@@ -41,7 +42,6 @@ class MainWindow: public QMainWindow
 		void removeFiles();
 		void clearFiles();
 		void showPreferences();
-		void checkSimilarity();
 		void updateInputFileCounter();
 
 	private slots:

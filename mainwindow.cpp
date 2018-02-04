@@ -229,9 +229,10 @@ void MainWindow::addFileInfo(const InputFileItem item)
 	inputFilesModel.update(item);
 
 	updateInputFileCounter();
-}
 
-void MainWindow::checkSimilarity()
-{
-
+	//if (inputFilesModel.rowCount() % 100 == 0) {
+		QtConcurrent::run([=]() {
+			inputFilesModel.getSimilarItems(item);
+		});
+	//}
 }

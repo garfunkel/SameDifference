@@ -2,7 +2,8 @@
 #define INPUTFILESMODEL_H
 
 #include <QAbstractTableModel>
-#include <QSortFilterProxyModel>
+#include <QBitArray>
+#include <QMutex>
 
 QString humanReadableFileSize(const qint64 size);
 
@@ -31,6 +32,8 @@ class InputFileItem
 		QString getResolution() const { return resolution; }
 		QString getCodec() const { return codec; }
 		QString getContainer() const { return container; }
+		QBitArray getFingerprint() const { return fingerprint; }
+		int getFingerprintDifference(const InputFileItem otherItem) const;
 		InputFileItemStatus getStatus() const { return status; }
 		QString getError() { return error; }
 		int getInfo();
@@ -51,6 +54,7 @@ class InputFileItem
 		QString resolution;
 		QString codec;
 		QString container;
+		QBitArray fingerprint;
 		InputFileItemStatus status;
 		QString error;
 		int currentInfoPieces;
@@ -80,15 +84,12 @@ class InputFilesModel: public QAbstractTableModel
 		bool removeSelection(const QModelIndexList selection);
 		void clear();
 
+		const QVector<InputFileItem> getSimilarItems(const InputFileItem item) const;
+
 	private:
 		QVector<InputFileItem> inputFileItems;
+		QHash<QString, int> inputFileItemsHash;
+		QMutex inputFileItemsMutex;
 };
-
-class SortFilterProxyModel: public QSortFilterProxyModel
-{
-	public:
-		explicit SortFilterProxyModel(QObject *parent = nullptr): QSortFilterProxyModel(parent) { ; }
-};
-
 
 #endif // INPUTFILESMODEL_H

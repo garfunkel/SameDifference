@@ -44,7 +44,7 @@ QString humanReadableFileSize(const qint64 size)
 
 const int InputFileItem::requiredInfoPieces = 7;
 
-InputFileItem::InputFileItem(const QString path)
+InputFileItem::InputFileItem(const QString path): fingerprint(MediaUtility::FINGERPRINT_SIZE * 8)
 {
 	this->path = path;
 	this->size = 0;
@@ -96,6 +96,14 @@ int InputFileItem::getInfo()
 		this->codec = media.getCodec();
 		this->container = media.getContainer();
 		this->status = Ready;
+
+		const uint8_t *mediaFingerprint = media.getFingerprint();
+
+		if (mediaFingerprint) {
+			for (int byteIndex = 0; byteIndex < MediaUtility::FINGERPRINT_SIZE; byteIndex++)
+				for (int bitIndex = 0; bitIndex < 8; bitIndex++)
+					fingerprint.setBit(byteIndex * 8 + bitIndex, mediaFingerprint[byteIndex] & (1 << (7 - bitIndex)));
+		}
 	} else {
 		this->status = Failed;
 		this->error = QString("Error reading file - will not compare for similarity: %1.").arg(media.getError(ret));
@@ -107,6 +115,24 @@ int InputFileItem::getInfo()
 QString InputFileItem::getFileName() const
 {
 	return QFileInfo(path).fileName();
+}
+
+int InputFileItem::getFingerprintDifference(const InputFileItem otherItem) const
+{
+	if (mediaType == "Image" || mediaType == "Video") {
+		if (otherItem.getMediaType() == "Image" || otherItem.getMediaType() == "Video") {
+			int diff = 0;
+
+			for (int i = 0; i < fingerprint.size(); i++) {
+				if (fingerprint[i] != otherItem.getFingerprint()[i])
+					diff++;
+			}
+
+			return diff;
+		}
+	}
+
+	return -1;
 }
 
 InputFilesModel::InputFilesModel(QObject *parent):
@@ -151,6 +177,8 @@ int InputFilesModel::rowCount(const QModelIndex &parent) const
 	if (parent.isValid())
 		return 0;
 
+	QMutexLocker lock((QMutex *)&inputFileItemsMutex);
+
 	return inputFileItems.length();
 }
 
@@ -167,11 +195,15 @@ QVariant InputFilesModel::data(const QModelIndex &index, int role) const
 	if (!index.isValid())
 		return QVariant();
 
+	QMutexLocker lock((QMutex *)&inputFileItemsMutex);
+
 	if (index.row() >= inputFileItems.length()) {
 		return QVariant();
 	}
 
 	InputFileItem item = inputFileItems[index.row()];
+
+	lock.unlock();
 
 	// Our UserRole implemnetation is used for sorting.
 	if (role == Qt::UserRole) {
@@ -329,11 +361,22 @@ QVariant InputFilesModel::data(const QModelIndex &index, int role) const
 
 void InputFilesModel::add(const InputFileItem item)
 {
-	if (!inputFileItems.contains(item)) {
+	QMutexLocker lock(&inputFileItemsMutex);
+
+	if (!inputFileItemsHash.contains(item.getPath())) {
 		int index = inputFileItems.length();
 
+		lock.unlock();
+
 		beginInsertRows(QModelIndex(), index, index);
+
+		lock.relock();
+
 		inputFileItems.append(item);
+		inputFileItemsHash[item.getPath()] = index;
+
+		lock.unlock();
+
 		endInsertRows();
 	}
 }
@@ -341,9 +384,18 @@ void InputFilesModel::add(const InputFileItem item)
 void InputFilesModel::update(const InputFileItem item)
 {
 	int index = 0;
+	QMutexLocker lock(&inputFileItemsMutex);
 
-	if ((index = inputFileItems.indexOf(item)) >= 0) {
+	if ((index = inputFileItemsHash.value(item.getPath())) >= 0) {
+		if (index >= inputFileItems.length())
+			return;
+
+		if (index == 0 && inputFileItems[0].getPath() != item.getPath())
+			return;
+
 		inputFileItems[index] = item;
+
+		lock.unlock();
 
 		emit dataChanged(createIndex(index, 0), createIndex(index, InputFileItem::requiredInfoPieces - 1));
 	}
@@ -351,9 +403,19 @@ void InputFilesModel::update(const InputFileItem item)
 
 bool InputFilesModel::removeRow(int row, const QModelIndex &parent)
 {
+	QMutexLocker lock(&inputFileItemsMutex);
+
 	if (row < inputFileItems.length()) {
+		lock.unlock();
+
 		beginRemoveRows(parent, row, row);
-		inputFileItems.remove(row);
+
+		lock.relock();
+
+		inputFileItemsHash.take(inputFileItems.takeAt(row).getPath());
+
+		lock.unlock();
+
 		endRemoveRows();
 	}
 
@@ -379,9 +441,48 @@ bool InputFilesModel::removeSelection(const QModelIndexList selection)
 
 void InputFilesModel::clear()
 {
-	if (!inputFileItems.isEmpty()) {
-		beginRemoveRows(QModelIndex(), 0, inputFileItems.length() - 1);
+	QMutexLocker lock(&inputFileItemsMutex);
+	int len = inputFileItems.length();
+
+	lock.unlock();
+
+	if (len > 0) {
+		beginRemoveRows(QModelIndex(), 0, len - 1);
+
+		lock.relock();
+
 		inputFileItems.clear();
+		inputFileItemsHash.clear();
+
+		lock.unlock();
+
 		endRemoveRows();
 	}
 }
+
+const QVector<InputFileItem> InputFilesModel::getSimilarItems(const InputFileItem item) const
+{
+	int diff = 0;
+	QVector<InputFileItem> similarItems;
+
+	for (int i = 0; ; i++) {
+		QMutexLocker lock((QMutex *)&inputFileItemsMutex);
+
+		if (i >= inputFileItems.length()) {
+			lock.unlock();
+
+			break;
+		}
+
+		InputFileItem otherItem = inputFileItems[i];
+
+		lock.unlock();
+
+		if (item.getPath() != otherItem.getPath()) {
+			diff = item.getFingerprintDifference(otherItem);
+		}
+	}
+
+	return similarItems;
+}
+

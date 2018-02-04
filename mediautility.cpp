@@ -8,7 +8,7 @@ extern "C" {
 
 #include "mediautility.h"
 
-const int MediaUtility::FRAME_FINGERPRINT_SIZE = 64;
+const int MediaUtility::FRAME_FINGERPRINT_SIZE = 8;
 const int MediaUtility::TWO_WAY_FRAME_FINGERPRINT_SIZE = MediaUtility::FRAME_FINGERPRINT_SIZE * 2;
 const int MediaUtility::NUM_FINGERPRINT_FRAMES = 10;
 const int MediaUtility::FINGERPRINT_SIZE = MediaUtility::TWO_WAY_FRAME_FINGERPRINT_SIZE * MediaUtility::NUM_FINGERPRINT_FRAMES;
@@ -182,8 +182,8 @@ int MediaUtility::computeFingerprint()
 			break;
 		}
 
-		computeFrameFingerprint(frame, fingerprint + (128 * i), GREY_FRAME_TYPE_9x8);
-		computeFrameFingerprint(frame, fingerprint + (128 * i) + 64, GREY_FRAME_TYPE_8x9);
+		computeFrameFingerprint(frame, fingerprint + (16 * i), GREY_FRAME_TYPE_9x8);
+		computeFrameFingerprint(frame, fingerprint + (16 * i) + 8, GREY_FRAME_TYPE_8x9);
 
 		av_frame_free(&frame);
 	}
@@ -256,14 +256,23 @@ int MediaUtility::computeFrameFingerprint(const AVFrame *frame, uint8_t *frameFi
 		return ret;
 	}
 
+	int byte = 0;
+	int bit = 0;
+
 	for (int y = yStart; y < greyFrame->height; y++) {
+		bit = 0;
+
 		for (int x = xStart; x < greyFrame->width; x++) {
 			pixel = *(greyFrame->data[0] + (y * greyFrame->width) + x);
 			comparisonPixel = *(greyFrame->data[0] + ((y - yStart) * greyFrame->width) + (x - xStart));
 
-			if (pixel >= comparisonPixel)
-				memset(frameFingerprint + ((y - yStart) * (greyFrame->width - xStart) + (x - xStart)), 1, 1);
+			if (pixel > comparisonPixel)
+				frameFingerprint[byte] |= (1 << (7 - bit));
+
+			bit++;
 		}
+
+		byte++;
 	}
 
 	av_frame_free(&greyFrame);
