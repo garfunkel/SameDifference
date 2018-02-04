@@ -1,5 +1,3 @@
-#include <thread>
-
 extern "C" {
 	#include <libavcodec/avcodec.h>
 	#include <libavformat/avformat.h>
@@ -184,11 +182,8 @@ int MediaUtility::computeFingerprint()
 			break;
 		}
 
-		std::thread compute9x8Thread(&MediaUtility::computeFrameFingerprint, this, frame, fingerprint + (128 * i), GREY_FRAME_TYPE_9x8);
-
+		computeFrameFingerprint(frame, fingerprint + (128 * i), GREY_FRAME_TYPE_9x8);
 		computeFrameFingerprint(frame, fingerprint + (128 * i) + 64, GREY_FRAME_TYPE_8x9);
-
-		compute9x8Thread.join();
 
 		av_frame_free(&frame);
 	}
