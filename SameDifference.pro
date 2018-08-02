@@ -27,20 +27,20 @@ DEFINES += QT_DEPRECATED_WARNINGS
 PKGCONFIG += libavformat libavcodec libavutil libswscale
 
 SOURCES += \
-        main.cpp \
-        mainwindow.cpp \
+    main.cpp \
+    mainwindow.cpp \
     inputfilesmodel.cpp \
     preferences.cpp \
     mediautility.cpp
 
 HEADERS += \
-        mainwindow.h \
+    mainwindow.h \
     inputfilesmodel.h \
     preferences.h \
     mediautility.h
 
 FORMS += \
-        mainwindow.ui \
+    mainwindow.ui \
     preferences.ui
 
 RESOURCES +=

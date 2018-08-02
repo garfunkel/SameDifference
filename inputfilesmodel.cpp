@@ -11,11 +11,11 @@
 #include "mediautility.h"
 
 static QString secondsToTimestamp(double seconds) {
-	int64_t minutes = seconds / 60;
+    int64_t minutes = static_cast<int64_t>(seconds / 60);
 	int64_t hours = minutes / 60;
 
 	seconds = fmod(seconds, 60);
-	minutes = fmod(minutes, 60);
+    minutes = static_cast<int64_t>(fmod(minutes, 60));
 
 	return QString().sprintf("%0.2" PRId64 ":%0.2" PRId64 ":%06.3f", hours, minutes, seconds);
 }
@@ -44,7 +44,7 @@ QString humanReadableFileSize(const qint64 size)
 
 const int InputFileItem::requiredInfoPieces = 7;
 
-InputFileItem::InputFileItem(const QString path): fingerprint(MediaUtility::FINGERPRINT_SIZE * 8)
+InputFileItem::InputFileItem(const QString path): fingerprint(static_cast<int>(MediaUtility::FINGERPRINT_SIZE * 8))
 {
 	this->path = path;
 	this->size = 0;
@@ -100,7 +100,7 @@ int InputFileItem::getInfo()
 		const uint8_t *mediaFingerprint = media.getFingerprint();
 
 		if (mediaFingerprint) {
-			for (int byteIndex = 0; byteIndex < MediaUtility::FINGERPRINT_SIZE; byteIndex++)
+            for (int byteIndex = 0; byteIndex < static_cast<int>(MediaUtility::FINGERPRINT_SIZE); byteIndex++)
 				for (int bitIndex = 0; bitIndex < 8; bitIndex++)
 					fingerprint.setBit(byteIndex * 8 + bitIndex, mediaFingerprint[byteIndex] & (1 << (7 - bitIndex)));
 		}

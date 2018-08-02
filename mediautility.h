@@ -21,7 +21,7 @@ enum MEDIA_TYPE {
 class MediaUtility
 {
 	public:
-		static const int FINGERPRINT_SIZE;
+        static const size_t FINGERPRINT_SIZE;
 
 		MediaUtility(const char *path);
 		~MediaUtility();
@@ -37,11 +37,11 @@ class MediaUtility
 		MEDIA_TYPE getMediaType() const { return mediaType; }
 
 	private:
-		static const int FRAME_FINGERPRINT_SIZE;
-		static const int TWO_WAY_FRAME_FINGERPRINT_SIZE;
-		static const int NUM_FINGERPRINT_FRAMES;
-		static const int BUFFER_SIZE_GREY_FRAME_9x8;
-		static const int BUFFER_SIZE_GREY_FRAME_8x9;
+        static const size_t FRAME_FINGERPRINT_SIZE;
+        static const size_t TWO_WAY_FRAME_FINGERPRINT_SIZE;
+        static const size_t NUM_FINGERPRINT_FRAMES;
+        static const size_t BUFFER_SIZE_GREY_FRAME_9x8;
+        static const size_t BUFFER_SIZE_GREY_FRAME_8x9;
 
 		enum GREY_FRAME_TYPE {
 			GREY_FRAME_TYPE_9x8,
