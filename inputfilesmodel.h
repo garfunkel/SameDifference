@@ -89,7 +89,7 @@ class InputFilesModel: public QAbstractTableModel
 	private:
 		QVector<InputFileItem> inputFileItems;
 		QHash<QString, int> inputFileItemsHash;
-		QMutex inputFileItemsMutex;
+        mutable QMutex inputFileItemsMutex;
 };
 
 #endif // INPUTFILESMODEL_H

@@ -177,7 +177,7 @@ int InputFilesModel::rowCount(const QModelIndex &parent) const
 	if (parent.isValid())
 		return 0;
 
-	QMutexLocker lock((QMutex *)&inputFileItemsMutex);
+    QMutexLocker lock(&inputFileItemsMutex);
 
 	return inputFileItems.length();
 }
@@ -195,7 +195,7 @@ QVariant InputFilesModel::data(const QModelIndex &index, int role) const
 	if (!index.isValid())
 		return QVariant();
 
-	QMutexLocker lock((QMutex *)&inputFileItemsMutex);
+    QMutexLocker lock(&inputFileItemsMutex);
 
 	if (index.row() >= inputFileItems.length()) {
 		return QVariant();
@@ -213,7 +213,7 @@ QVariant InputFilesModel::data(const QModelIndex &index, int role) const
 				// apparently doesn't do anything...?
 				switch (item.getStatus()) {
 					case Loading:
-						return (double)(std::numeric_limits<int>::max() - 1);
+                        return static_cast<double>(std::numeric_limits<int>::max() - 1);
 
 					case Ready:
 						if (item.getDurationTimestamp() == "N/A")
@@ -222,7 +222,7 @@ QVariant InputFilesModel::data(const QModelIndex &index, int role) const
 						return item.getDuration();
 
 					case Failed:
-						return (double)(std::numeric_limits<int>::max() - 2);
+                        return static_cast<double>(std::numeric_limits<int>::max() - 2);
 				}
 
 			case 3:
@@ -466,7 +466,7 @@ const QVector<InputFileItem> InputFilesModel::getSimilarItems(const InputFileIte
 	QVector<InputFileItem> similarItems;
 
 	for (int i = 0; ; i++) {
-		QMutexLocker lock((QMutex *)&inputFileItemsMutex);
+        QMutexLocker lock(&inputFileItemsMutex);
 
 		if (i >= inputFileItems.length()) {
 			lock.unlock();
