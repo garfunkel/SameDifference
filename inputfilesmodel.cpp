@@ -17,7 +17,7 @@ static QString secondsToTimestamp(double seconds) {
 	seconds = fmod(seconds, 60);
     minutes = static_cast<int64_t>(fmod(minutes, 60));
 
-	return QString().sprintf("%0.2" PRId64 ":%0.2" PRId64 ":%06.3f", hours, minutes, seconds);
+	return QString().sprintf("%.2" PRId64 ":%.2" PRId64 ":%06.3f", hours, minutes, seconds);
 }
 
 QString humanReadableFileSize(const qint64 size)
@@ -225,6 +225,8 @@ QVariant InputFilesModel::data(const QModelIndex &index, int role) const
                         return static_cast<double>(std::numeric_limits<int>::max() - 2);
 				}
 
+				break;
+
 			case 3:
 				switch (item.getStatus()) {
 					case Loading:
@@ -236,6 +238,8 @@ QVariant InputFilesModel::data(const QModelIndex &index, int role) const
 					case Failed:
 						return std::numeric_limits<qint64>::max() - 1;
 				}
+
+				break;
 
 			case 4:
 				switch (item.getStatus()) {
@@ -274,6 +278,8 @@ QVariant InputFilesModel::data(const QModelIndex &index, int role) const
 						return item.getErrorPlaceholder();
 				}
 
+				break;
+
 			case 2:
 				switch (item.getStatus()) {
 					case Loading:
@@ -285,6 +291,8 @@ QVariant InputFilesModel::data(const QModelIndex &index, int role) const
 					case Failed:
 						return item.getErrorPlaceholder();
 				}
+
+				break;
 
 			case 3:
 				switch (item.getStatus()) {
@@ -298,6 +306,8 @@ QVariant InputFilesModel::data(const QModelIndex &index, int role) const
 						return item.getErrorPlaceholder();
 				}
 
+				break;
+
 			case 4:
 				switch (item.getStatus()) {
 					case Loading:
@@ -310,6 +320,8 @@ QVariant InputFilesModel::data(const QModelIndex &index, int role) const
 						return item.getErrorPlaceholder();
 				}
 
+				break;
+
 			case 5:
 				switch (item.getStatus()) {
 					case Loading:
@@ -321,6 +333,8 @@ QVariant InputFilesModel::data(const QModelIndex &index, int role) const
 					case Failed:
 						return item.getErrorPlaceholder();
 				}
+
+				break;
 
 			case 6:
 				switch (item.getStatus()) {
